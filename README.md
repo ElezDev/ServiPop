@@ -73,3 +73,5 @@ Sigue estos pasos para configurar el proyecto en tu entorno local.
    ```bash
    git clone https://github.com/tu-usuario/app-prestadores.git
    cd app-prestadores
+    composer install
+    php artisan key:generate
