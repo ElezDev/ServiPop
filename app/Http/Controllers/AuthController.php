@@ -3,14 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Validator;
-use Illuminate\Support\Facades\Hash;
 use Log;
-use Storage;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+
 class AuthController extends Controller
 {
     public function register(Request $request)
@@ -69,7 +67,40 @@ class AuthController extends Controller
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
     
-        return response()->json(compact('token'));
+        if (!auth()->check()) {
+            return response()->json(['error' => 'user_not_authenticated'], 401);
+        }
+    
+        $expiresIn = JWTAuth::factory()->getTTL() * 60; 
+    
+        $refreshToken = JWTAuth::attempt($credentials, [
+            'token_type' => 'refresh',
+            'ttl' => config('jwt.refresh_ttl'),
+        ]);
+    
+        return response()->json([
+            'token' => $token,
+            'refresh_token' => $refreshToken,
+            'token_type' => 'bearer',
+            'expires_in' => $expiresIn,
+        ]);
+    }
+
+    public function refreshToken(Request $request)
+    {
+        try {
+            $refreshToken = $request->input('refresh_token');
+    
+            $newToken = JWTAuth::setToken($refreshToken)->refresh();
+    
+            return response()->json([
+                'token' => $newToken,
+                'token_type' => 'bearer',
+                'expires_in' => JWTAuth::factory()->getTTL() * 60,
+            ]);
+        } catch (JWTException $e) {
+            return response()->json(['error' => 'could_not_refresh_token', 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function logout()

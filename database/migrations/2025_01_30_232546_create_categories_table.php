@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Nombre de la categoría (ej: "Cerrajería")
-            $table->string('slug')->unique(); // Slug para URLs amigables
-            $table->text('description')->nullable(); // Descripción opcional
+            $table->string('name'); 
+            
+            $table->string('slug')->unique(); 
+            $table->text('description')->nullable(); 
+            $table->string('image'); 
             $table->timestamps();
         });
     }
