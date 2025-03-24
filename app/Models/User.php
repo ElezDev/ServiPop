@@ -24,7 +24,24 @@ class User extends Authenticatable implements JWTSubject
         'name',
         'email',
         'password',
+        'avatar',
+        'phone',
+        'address',
+        'lastname',
     ];
+
+
+    protected $appends = ['avatar'];
+
+    public function getAvatarAttribute()
+        {
+            if (
+                isset($this->attributes['avatar']) &&
+                isset($this->attributes['avatar'][0])
+            ) {
+                return url($this->attributes['avatar']);
+            }
+        }
 
     /**
      * The attributes that should be hidden for serialization.

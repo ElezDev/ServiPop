@@ -8,42 +8,60 @@ use Validator;
 use Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
+ 
     public function register(Request $request)
     {
         try {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-        ]);
-
-        $token = JWTAuth::fromUser($user);
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users',
+                'password' => 'required|string|min:6',
+                'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'phone' => 'nullable|string|max:255',
+                'address' => 'nullable|string|max:255',
+                'lastname' => 'nullable|string|max:255',
+            ]);
     
-        return response()->json([
-            'user' => $user,
-            // 'person' => $person,
-            'token' => $token,
-        ], 201);
-    } catch (\Illuminate\Database\QueryException $e) {
-        Log::error('Error de base de datos: ' . $e->getMessage());
-        return response()->json(['error' => 'Error en la base de datos al crear el usuario y la persona'], 500);
-    } catch (\Exception $e) {
-        Log::error('Error al crear la persona: ' . $e->getMessage());
-        return response()->json(['error' => 'No se pudo crear el usuario y la persona'], 500);
-    }
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 400);
+            }
+    
+          
+            $avatarPath = null;
+            if ($request->hasFile('avatar')) {
+                $imagePath = $request->file('avatar')->store('avatars', 'public');
+                $avatarPath = '/storage/' . $imagePath;
+            }
+            
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+                'avatar' => $avatarPath, 
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'lastname' => $request->lastname,
+            ]);
+    
+    
+    
+            $token = JWTAuth::fromUser($user);
+    
+            return response()->json([
+                'user' => $user,
+                'token' => $token,
+            ], 201);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('Error de base de datos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error en la base de datos al crear el usuario y la persona'], 500);
+        } catch (\Exception $e) {
+            Log::error('Error al crear la persona: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo crear el usuario y la persona'], 500);
+        }
     }
 
     public function login(Request $request)
