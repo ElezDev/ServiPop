@@ -23,4 +23,6 @@ public function getImageUrlAttribute()
     {
         return $this->belongsTo(ServiceProvider::class);
     }
+
+
 }

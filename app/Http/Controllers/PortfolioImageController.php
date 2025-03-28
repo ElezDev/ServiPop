@@ -21,10 +21,8 @@ class PortfolioImageController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        // Guardar la imagen en el almacenamiento
         $imagePath = $request->file('image')->store('portfolio_images', 'public');
 
-        // Crear el registro en la base de datos
         $portfolioImage = $serviceProvider->portfolioImages()->create([
             'image_url' => Storage::url($imagePath),
             'description' => $request->input('description'),
