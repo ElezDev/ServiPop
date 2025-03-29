@@ -27,4 +27,5 @@ Route::apiResource('service-providers.portfolio-images', PortfolioImageControlle
     ->only(['index', 'store', 'show', 'destroy']);
 
 
-Route::apiResource('service-providers', ServiceProviderController::class)->middleware('auth:api');;
+Route::apiResource('service-providers', ServiceProviderController::class)->middleware('auth:api');
+Route::get('services-category/{idCategory}', [ServiceController::class, 'serviceByCategory']);

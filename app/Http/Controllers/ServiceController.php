@@ -16,8 +16,6 @@ class ServiceController extends Controller
         return Service::with('categories','portfolioImages')->get();
     }
 
-
-
     public function store(Request $request)
     {
         $serviceProvider = ServiceProvider::where('user_id', Auth::id())->first();
@@ -93,9 +91,7 @@ class ServiceController extends Controller
         if ($request->has('categories')) {
             $service->categories()->sync($request->input('categories'));
         }
-    
-        // Procesar nuevas imágenes de portafolio
-        if ($request->hasFile('portfolio_images')) {
+            if ($request->hasFile('portfolio_images')) {
             $currentDate = now()->format('Y-m-d');
             
             foreach ($request->file('portfolio_images') as $image) {
@@ -117,7 +113,6 @@ class ServiceController extends Controller
 
     public function destroy(Service $service)
     {
-        // Verificar que el servicio pertenece al proveedor del usuario autenticado
         $serviceProvider = ServiceProvider::where('user_id', Auth::id())->first();
 
         if (!$serviceProvider || $service->service_provider_id != $serviceProvider->id) {
@@ -125,9 +120,23 @@ class ServiceController extends Controller
                 'message' => 'No tienes permiso para eliminar este servicio'
             ], 403);
         }
-
-        // Eliminar imágenes de portafolio asociadas (el onDelete cascade en la BD ya se encarga)
         $service->delete();
         return response()->noContent();
     }
+
+
+    public function serviceByCategory($idCategory)
+    {
+        $services = Service::with([
+                'serviceProvider.user',
+                'portfolioImages'
+            ])
+            ->whereHas('categories', function ($query) use ($idCategory) {
+                $query->where('categories.id', $idCategory);
+            })
+            ->get();
+        
+        return response()->json($services);
+    }
+
 }

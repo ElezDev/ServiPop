@@ -13,6 +13,10 @@ class Service extends Model
     {
         return $this->belongsTo(ServiceProvider::class);
     }
+    public function portfolioImages()
+    {
+        return $this->hasMany(PortfolioImage::class);
+    }
 
     public function bookings()
     {
@@ -24,8 +28,5 @@ class Service extends Model
         return $this->belongsToMany(Category::class, 'service_category');
     }
 
-    public function portfolioImages()
-    {
-        return $this->hasMany(PortfolioImage::class);
-    }
+    
 }
