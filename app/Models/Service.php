@@ -27,6 +27,21 @@ class Service extends Model
     {
         return $this->belongsToMany(Category::class, 'service_category');
     }
+ /**
+     * Obtiene los favoritos asociados a este servicio
+     */
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
 
+    /**
+     * Obtiene los usuarios que marcaron este servicio como favorito
+     */
+    public function favoritedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'favorites')
+                   ->withTimestamps();
+    }
     
 }

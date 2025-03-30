@@ -129,12 +129,6 @@ class AuthController extends Controller
     {
         $user = auth()->user();
         $user->load('roles', 'permissions');
-        $response = [
-            'user' => $user,
-            // 'roles' => $user->getRoleNames(),
-            // 'permissions' => $user->getAllPermissions()->pluck('name') 
-        ];
-        
-        return response()->json($response);
+        return response()->json($user);
     }
 }

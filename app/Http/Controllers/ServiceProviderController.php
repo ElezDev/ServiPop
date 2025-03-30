@@ -26,13 +26,13 @@ public function store(Request $request)
     // Verificar si el usuario ya tiene un proveedor de servicios registrado
     if (ServiceProvider::where('user_id', Auth::id())->exists()) {
         return response()->json([
-            'message' => 'User already has a service provider registered',
+            'message' => 'Ya eres proveedor de servicios',
             'error' => 'User can only register once as a service provider'
         ], 409); // 409 Conflict es apropiado para este caso
     }
 
     $validator = Validator::make($request->all(), [
-        'service_type' => 'required|string|max:255',
+        'service_type' => 'nullable|string|max:255',
         'description' => 'nullable|string',
         'address' => 'nullable|string|max:255',
         'latitude' => 'nullable|numeric|between:-90,90',

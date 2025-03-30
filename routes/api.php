@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FavoriteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -29,3 +30,22 @@ Route::apiResource('service-providers.portfolio-images', PortfolioImageControlle
 
 Route::apiResource('service-providers', ServiceProviderController::class)->middleware('auth:api');
 Route::get('services-category/{idCategory}', [ServiceController::class, 'serviceByCategory']);
+
+
+Route::middleware('auth:api')->group(function () {
+    // CRUD básico
+    Route::get('/favorites', [FavoriteController::class, 'index']);
+    Route::post('/favorites', [FavoriteController::class, 'store']);
+    Route::get('/favorites/{favorite}', [FavoriteController::class, 'show']);
+    Route::delete('/favorites/{favorite}', [FavoriteController::class, 'destroy']);
+    
+    // Funcionalidades de checked
+    Route::put('/favorites/{favorite}/check', [FavoriteController::class, 'markAsChecked']);
+    Route::put('/favorites/{favorite}/uncheck', [FavoriteController::class, 'unmarkAsChecked']);
+    Route::put('/favorites/{favorite}/toggle', [FavoriteController::class, 'toggleChecked']);
+    Route::get('/favorites/checked/list', [FavoriteController::class, 'checkedFavorites']);
+    
+    // Utilidades
+    Route::get('/services/{service}/check-favorite', [FavoriteController::class, 'checkFavorite']);
+    Route::post('/favorites/bulk-update', [FavoriteController::class, 'bulkUpdateCheckedStatus']);
+});

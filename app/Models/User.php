@@ -86,4 +86,17 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Booking::class);
     }
     
+    public function favorites()
+    {
+        return $this->hasMany(Favorite::class);
+    }
+
+    /**
+     * Obtiene los servicios favoritos (relación a través del modelo Favorite)
+     */
+    public function favoriteServices()
+    {
+        return $this->belongsToMany(Service::class, 'favorites')
+                    ->withTimestamps();
+    }
 }
