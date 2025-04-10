@@ -23,12 +23,11 @@ class ServiceProviderController extends Controller
  */
 public function store(Request $request)
 {
-    // Verificar si el usuario ya tiene un proveedor de servicios registrado
     if (ServiceProvider::where('user_id', Auth::id())->exists()) {
         return response()->json([
             'message' => 'Ya eres proveedor de servicios',
             'error' => 'User can only register once as a service provider'
-        ], 409); // 409 Conflict es apropiado para este caso
+        ], 409);
     }
 
     $validator = Validator::make($request->all(), [
@@ -46,12 +45,17 @@ public function store(Request $request)
 
     $data = $validator->validated();
     $data['user_id'] = Auth::id();
+    $user = Auth::user();
+    $user->removeRole('user');
+    $user->assignRole('serviceProvider');
 
     $serviceProvider = ServiceProvider::create($data);
 
     return response()->json([
         'message' => 'Service provider created successfully',
-        'data' => $serviceProvider
+        'data' => $serviceProvider,
+        'user_role' => 'serviceProvider'
+
     ], 201);
 }
 
@@ -80,7 +84,6 @@ public function store(Request $request)
             return response()->json(['message' => 'Service provider not found'], 404);
         }
 
-        // Verificar que el usuario autenticado es el dueño del registro
         if ($serviceProvider->user_id !== Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -99,10 +102,14 @@ public function store(Request $request)
         }
 
         $serviceProvider->update($validator->validated());
+        $user = Auth::user();
+        $user->removeRole('user');
+        $user->assignRole('serviceProvider');
 
         return response()->json([
             'message' => 'Service provider updated successfully',
-            'data' => $serviceProvider
+            'data' => $serviceProvider,
+             'user_role' => 'serviceProvider'
         ]);
     }
 
@@ -117,7 +124,6 @@ public function store(Request $request)
             return response()->json(['message' => 'Service provider not found'], 404);
         }
 
-        // Verificar que el usuario autenticado es el dueño del registro
         if ($serviceProvider->user_id !== Auth::id()) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }

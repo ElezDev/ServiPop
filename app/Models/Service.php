@@ -13,6 +13,7 @@ class Service extends Model
     {
         return $this->belongsTo(ServiceProvider::class);
     }
+    
     public function portfolioImages()
     {
         return $this->hasMany(PortfolioImage::class);

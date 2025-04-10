@@ -17,12 +17,12 @@ class RoleSeeder extends Seeder
         // Crear roles
         Role::firstOrCreate([
             'name' => 'user',
-            'guard_name' => 'web'
+            'guard_name' => 'api'
         ]);
 
         Role::firstOrCreate([
             'name' => 'serviceProvider',
-            'guard_name' => 'web'
+            'guard_name' => 'api'
         ]);
 
         $this->command->info('Roles "user" y "service provider" creados exitosamente!');

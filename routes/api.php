@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\FavoriteController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -48,4 +49,9 @@ Route::middleware('auth:api')->group(function () {
     // Utilidades
     Route::get('/services/{service}/check-favorite', [FavoriteController::class, 'checkFavorite']);
     Route::post('/favorites/bulk-update', [FavoriteController::class, 'bulkUpdateCheckedStatus']);
+
+
+
 });
+
+Route::post('/booking', [BookingController::class, 'store'])->middleware('auth:api');
