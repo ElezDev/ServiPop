@@ -53,8 +53,9 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/favorites/bulk-update', [FavoriteController::class, 'bulkUpdateCheckedStatus']);
 
     Route::post('/update-device-token', [UserController::class, 'updateDeviceToken']);
+    Route::apiResource('notifications', NotificationController::class);
+
 
 });
 
 Route::post('/booking', [BookingController::class, 'store'])->middleware('auth:api');
-Route::apiResource('notifications', NotificationController::class);
