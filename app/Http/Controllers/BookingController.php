@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Service;
 use App\Models\ServiceProvider;
+use App\Models\User;
+use App\Services\FCMService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
@@ -25,40 +27,73 @@ class BookingController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
+{
+    $validated = $request->validate([
+        'service_id' => 'required|exists:services,id',
+        'scheduled_at' => 'required|date',
+        'address' => 'required|string|max:255',
+        'notes' => 'nullable|string',
+    ]);
+
+    $service = Service::with('serviceProvider')->findOrFail($validated['service_id']);
+    $durationInMinutes = $this->parseServiceDuration($service->duration);
+    $startTime = now()->parse($validated['scheduled_at']);
+    $endTime = $startTime->copy()->addMinutes($durationInMinutes);
+
+    $this->validateProviderAvailability($service->service_provider_id, $startTime, $endTime);
+
+    $booking = Booking::create([
+        'user_id' => Auth::id(),
+        'service_id' => $validated['service_id'],
+        'provider_id' => $service->service_provider_id,
+        'status' => 'pending',
+        'scheduled_at' => $validated['scheduled_at'],
+        'end_at' => $endTime,
+        'duration' => $durationInMinutes,
+        'price' => $service->price,
+        'payment_status' => 'pending',
+        'address' => $validated['address'],
+        'notes' => $validated['notes'] ?? null,
+    ]);
+
+    $providerUser = User::findOrFail($service->serviceProvider->user_id);
+    $this->sendBookingNotification($booking, $providerUser);
+
+    return response()->json([
+        'message' => 'Booking creado exitosamente',
+        'data' => $booking
+    ], 201);
+}
+    
+    protected function sendBookingNotification(Booking $booking,  $provider)
     {
-        $validated = $request->validate([
-            'service_id' => 'required|exists:services,id',
-            'scheduled_at' => 'required|date',
-            'address' => 'required|string|max:255',
-            'notes' => 'nullable|string',
+
+        $notification = $provider->notifications()->create([
+            'sender_id' => Auth::id(),
+            'booking_id' => $booking->id,
+            'type' => 'booking_created',
+            'title' => 'Nueva reserva recibida',
+            'message' => 'Tienes una nueva reserva para el servicio: ' . $booking->service->title,
         ]);
 
-        $service = Service::with('serviceProvider')->findOrFail($validated['service_id']);
-        $durationInMinutes = $this->parseServiceDuration($service->duration);
-        $startTime = now()->parse($validated['scheduled_at']);
-        $endTime = $startTime->copy()->addMinutes($durationInMinutes);
-
-        $this->validateProviderAvailability($service->service_provider_id, $startTime, $endTime);
-
-
-        $booking = Booking::create([
-            'user_id' => Auth::id(),
-            'service_id' => $validated['service_id'],
-            'provider_id' => $service->service_provider_id,
-            'status' => 'pending',
-            'scheduled_at' => $validated['scheduled_at'],
-            'end_at' => now()->parse($validated['scheduled_at'])->addMinutes($durationInMinutes),
-            'duration' => $durationInMinutes,
-            'price' => $service->price,
-            'payment_status' => 'pending',
-            'address' => $validated['address'],
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        return response()->json([
-            'message' => 'Booking creado exitosamente',
-            'data' => $booking
-        ], 201);
+    
+        if ($provider->device_token) {
+            $fcmData = [
+                'title' => 'Nueva reserva recibida',
+                'body' => 'Tienes una nueva reserva para el servicio: ' . $booking->service->title,
+                'data' => [
+                    'type' => 'booking_created',
+                    'booking_id' => $booking->id,
+                    'notification_id' => $notification->id,
+                ]
+            ];
+    
+            FCMService::send(
+                $fcmData['title'],
+                $fcmData['body'],
+                $provider->device_token,
+            );
+        }
     }
 
     protected function parseServiceDuration($duration)

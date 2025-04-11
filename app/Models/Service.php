@@ -44,5 +44,10 @@ class Service extends Model
         return $this->belongsToMany(User::class, 'favorites')
                    ->withTimestamps();
     }
+    // En app/Models/Service.php
+    public function serviceProviderUser()
+    {
+        return $this->belongsTo(User::class, 'service_provider_id');
+    }
     
 }

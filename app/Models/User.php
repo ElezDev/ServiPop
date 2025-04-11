@@ -93,4 +93,14 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsToMany(Service::class, 'favorites')
                     ->withTimestamps();
     }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function unreadNotifications()
+    {
+        return $this->notifications()->where('is_read', false);
+    }
 }

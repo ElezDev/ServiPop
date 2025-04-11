@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -50,8 +52,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/services/{service}/check-favorite', [FavoriteController::class, 'checkFavorite']);
     Route::post('/favorites/bulk-update', [FavoriteController::class, 'bulkUpdateCheckedStatus']);
 
-
+    Route::post('/update-device-token', [UserController::class, 'updateDeviceToken']);
 
 });
 
 Route::post('/booking', [BookingController::class, 'store'])->middleware('auth:api');
+Route::apiResource('notifications', NotificationController::class);
