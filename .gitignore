@@ -21,4 +21,4 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
-storage/firebase/service-account.json
+/storage/firebase/service-account.json
