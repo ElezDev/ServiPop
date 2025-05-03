@@ -13,16 +13,54 @@ class NotificationController extends Controller
     public function index()
     {
         $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthenticated'
+            ], 401);
+        }
+    
         $notifications = $user->notifications()
+            ->with(['sender:id,name,avatar', 'booking:id']) 
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-
+    
+        $transformedNotifications = $notifications->getCollection()->map(function ($notification) {
+            return [
+                'id' => $notification->id,
+                'type' => $notification->type,
+                'title' => $notification->title,
+                'message' => $notification->message,
+                'is_read' => $notification->is_read,
+                'created_at' => $notification->created_at->diffForHumans(),
+                'sender' => $notification->sender ? [
+                    'id' => $notification->sender->id,
+                    'name' => $notification->sender->name,
+                    'avatar' => $notification->sender->avatar,
+                ] : null,
+                'booking' => $notification->booking ? [
+                    'id' => $notification->booking->id,
+                ] : null,
+            ];
+        });
+    
         return response()->json([
-            'data' => $notifications,
-            'unread_count' => $user->unreadNotifications()->count()
+            'data' => [
+                'notifications' => $transformedNotifications,
+                'pagination' => [
+                    'current_page' => $notifications->currentPage(),
+                    'last_page' => $notifications->lastPage(),
+                    'per_page' => $notifications->perPage(),
+                    'total' => $notifications->total(),
+                ],
+            ],
+            'meta' => [
+                'unread_count' => $user->unreadNotifications()->count(),
+                'total_count' => $user->notifications()->count(),
+            ],
+            'message' => 'Notifications retrieved successfully'
         ]);
     }
-
     public function store(Request $request)
     {
         $validated = $request->validate([

@@ -3,6 +3,8 @@
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -53,8 +55,18 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/favorites/bulk-update', [FavoriteController::class, 'bulkUpdateCheckedStatus']);
 
     Route::post('/update-device-token', [UserController::class, 'updateDeviceToken']);
+    Route::apiResource('notifications', NotificationController::class);
+
+    
+
 
 });
 
 Route::post('/booking', [BookingController::class, 'store'])->middleware('auth:api');
-Route::apiResource('notifications', NotificationController::class);
+
+Route::middleware('auth:api')->group(function () {
+    Route::post('/pay/service/{service}', [PaymentController::class, 'payService']);
+    Route::post('/subscribe/{subscription}', [SubscriptionController::class, 'subscribe']);
+});
+
+Route::post('/wompi/webhook', [WompiWebhookController::class, 'handle']);
