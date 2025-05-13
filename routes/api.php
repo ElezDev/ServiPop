@@ -55,7 +55,10 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/update-device-token', [UserController::class, 'updateDeviceToken']);
     Route::apiResource('notifications', NotificationController::class);
 
+    
+    Route::get('/bookings_by_provider', [BookingController::class, 'bookingByProvider']);
+
 
 });
 
-Route::post('/booking', [BookingController::class, 'store'])->middleware('auth:api');
+Route::post('/booking', [BookingController::class, 'store'])->middleware(middleware: 'auth:api');

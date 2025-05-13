@@ -18,9 +18,19 @@ class BookingController extends Controller
      */
     public function index()
     {
-        //
+        
     }
 
+    public function bookingByProvider() {
+        $user = Auth::user();
+        $bookings = Booking::whereHas('serviceProvider', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->with(['service', 'user', 'serviceProvider'])
+            ->get();
+    
+        return response()->json($bookings);
+    }
 
 
     /**
